@@ -5,6 +5,9 @@ import { AppLayout } from '@/components/AppLayout'
 import { HealthPage } from '@/pages/HealthPage'
 import { SignInPage } from '@/pages/SignInPage'
 import { WorkspacePlaceholderPage } from '@/pages/WorkspacePlaceholderPage'
+import { LeadDetailPage } from '@/pages/plaintiff/LeadDetailPage'
+import { NewLeadPage } from '@/pages/plaintiff/NewLeadPage'
+import { PlaintiffDashboardPage } from '@/pages/plaintiff/PlaintiffDashboardPage'
 import { SessionProvider, homePathFor, useSession } from '@/lib/session'
 
 const queryClient = new QueryClient()
@@ -20,6 +23,12 @@ export function AppRoutes() {
       <Route path="/" element={<Home />} />
       <Route path="/sign-in" element={<SignInPage />} />
       <Route path="/health" element={<HealthPage />} />
+
+      <Route path="/plaintiff" element={<AppLayout roles={['PLAINTIFF']} />}>
+        <Route index element={<PlaintiffDashboardPage />} />
+        <Route path="leads/new" element={<NewLeadPage />} />
+        <Route path="leads/:leadId" element={<LeadDetailPage />} />
+      </Route>
 
       <Route path="/workspace" element={<AppLayout roles={['ATTORNEY', 'PARALEGAL', 'ADMIN']} />}>
         <Route index element={<WorkspacePlaceholderPage />} />
