@@ -2,10 +2,11 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import CheckConstraint, ForeignKey, Index, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.enums import UserRole, user_role_type
+from app.models.firm import Firm
 
 
 class User(Base):
@@ -26,3 +27,5 @@ class User(Base):
     role: Mapped[UserRole] = mapped_column(user_role_type)
     firm_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("firms.id"))
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    firm: Mapped[Firm | None] = relationship(lazy="raise")
