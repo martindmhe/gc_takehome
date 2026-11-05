@@ -2,11 +2,12 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import CheckConstraint, ForeignKey, Index, String, Text, func
-from sqlalchemy.orm import Mapped, mapped_column, validates
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.db.base import Base
 from app.models.normalize import normalize_region
 from app.models.enums import LeadStatus, lead_status_type
+from app.models.firm import Firm
 
 
 class Lead(Base):
@@ -34,6 +35,9 @@ class Lead(Base):
     assigned_firm_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("firms.id"))
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    # lazy="raise": load it explicitly (joinedload) so list queries can't go N+1.
+    assigned_firm: Mapped[Firm | None] = relationship(lazy="raise")
 
     @validates("region")
     def _normalize_region(self, _key: str, value: str) -> str:
