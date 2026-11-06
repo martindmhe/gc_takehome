@@ -1,15 +1,18 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 
+import { AssignmentPanel } from '@/components/admin/AssignmentPanel'
+import { AuditTimeline } from '@/components/admin/AuditTimeline'
 import { CaseStatusBadge } from '@/components/CaseStatusBadge'
 import { DocumentsPanel } from '@/components/DocumentsPanel'
 import { DetailItem, LeadInfoFields } from '@/components/LeadInfoFields'
 import { LeadStatusBadge } from '@/components/LeadStatusBadge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ApiError, getLead } from '@/lib/api'
+import { ApiError, assignLead, getLead } from '@/lib/api'
 import { unassignedReason } from '@/lib/leads'
 
-/** Read-only admin view of any lead. Assignment actions come in a later step. */
+/** Admin view of any lead: details, documents, firm assignment, and history. */
 export function AdminLeadPage() {
   const { leadId = '' } = useParams()
   const lead = useQuery({ queryKey: ['lead', leadId], queryFn: () => getLead(leadId) })
@@ -39,10 +42,41 @@ export function AdminLeadPage() {
             <LeadStatusBadge status={lead.data.status} />
           </CardHeader>
           <CardContent className="space-y-6">
-            {reason && (
-              <p role="status" className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm">
-                {reason} This lead has no firm and is waiting for an admin to assign one.
-              </p>
+            {lead.data.status === 'ACCEPTED' ? (
+              <AssignmentPanel currentFirm={lead.data.assigned_firm}>
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-muted-foreground text-sm">
+                    This lead was accepted, so its firm follows its case. Reassign the case to
+                    move both.
+                  </p>
+                  {lead.data.case && (
+                    <Button asChild>
+                      <Link to={`/admin/cases/${lead.data.case.id}`}>Go to case to reassign</Link>
+                    </Button>
+                  )}
+                </div>
+              </AssignmentPanel>
+            ) : (
+              <AssignmentPanel
+                currentFirm={lead.data.assigned_firm}
+                unassignedNote={reason && `${reason} Waiting for an admin to assign a firm.`}
+                buttonLabel={lead.data.assigned_firm ? 'Reassign lead' : 'Assign to a firm'}
+                dialogTitle={lead.data.assigned_firm ? 'Reassign this lead' : 'Assign this lead'}
+                onAssign={(firmId) => assignLead(lead.data.id, firmId)}
+                consequences={(firm) => (
+                  <ul className="list-disc space-y-1 pl-4">
+                    {lead.data.assigned_firm && (
+                      <li>
+                        <strong>{lead.data.assigned_firm.name}</strong> immediately loses access to
+                        this lead and its documents.
+                      </li>
+                    )}
+                    <li>
+                      <strong>{firm}</strong> will see it in their inbox to accept or decline.
+                    </li>
+                  </ul>
+                )}
+              />
             )}
             <LeadInfoFields lead={lead.data}>
               <DetailItem label="Assigned firm">
@@ -67,6 +101,7 @@ export function AdminLeadPage() {
       )}
 
       {lead.isSuccess && <DocumentsPanel leadId={lead.data.id} readOnly />}
+      {lead.isSuccess && <AuditTimeline kind="leads" id={lead.data.id} />}
     </div>
   )
 }

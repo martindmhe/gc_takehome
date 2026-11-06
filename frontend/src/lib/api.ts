@@ -283,3 +283,43 @@ export function adminSearchCases(params: AdminCaseSearchParams): Promise<Numbere
 export function adminListFirms(params: { page?: number; page_size?: number }): Promise<NumberedPage<Firm>> {
   return apiFetch<NumberedPage<Firm>>(`/api/admin/firms${queryString(params)}`)
 }
+
+/** Only `firm_id` is sent; the server checks the move is allowed. Returns the updated lead. */
+export function assignLead(leadId: string, firmId: string): Promise<Lead> {
+  return apiFetch<Lead>(`/api/admin/leads/${encodeURIComponent(leadId)}/assign`, {
+    method: 'POST',
+    body: JSON.stringify({ firm_id: firmId }),
+  })
+}
+
+/** Moves the case and its lead together. Status, documents and notes are kept. */
+export function reassignCase(caseId: string, firmId: string): Promise<Case> {
+  return apiFetch<Case>(`/api/admin/cases/${encodeURIComponent(caseId)}/reassign`, {
+    method: 'POST',
+    body: JSON.stringify({ firm_id: firmId }),
+  })
+}
+
+export type AuditEvent = {
+  id: string
+  entity_type: string
+  entity_id: string
+  action: string
+  /** null for SYSTEM actions, e.g. automatic routing. */
+  actor: UserSummary | null
+  description: string
+  old_values: Record<string, unknown> | null
+  new_values: Record<string, unknown> | null
+  created_at: string
+}
+
+/** Oldest first. Lead history: the lead and its documents. Case history adds the case and its notes. */
+export function getHistory(
+  kind: 'leads' | 'cases',
+  id: string,
+  params: { page?: number; page_size?: number },
+): Promise<NumberedPage<AuditEvent>> {
+  return apiFetch<NumberedPage<AuditEvent>>(
+    `/api/admin/${kind}/${encodeURIComponent(id)}/history${queryString(params)}`,
+  )
+}

@@ -19,8 +19,17 @@ const MAX_LENGTH = 10_000
  *
  * - `firm`: staff of the assigned firm read and add their firm's notes.
  * - `admin`: read-only, every firm's notes, with the firm that wrote each one.
+ *   Pass `currentFirmId` to flag notes written by a previously assigned firm.
  */
-export function NotesPanel({ caseId, mode }: { caseId: string; mode: 'firm' | 'admin' }) {
+export function NotesPanel({
+  caseId,
+  mode,
+  currentFirmId,
+}: {
+  caseId: string
+  mode: 'firm' | 'admin'
+  currentFirmId?: string
+}) {
   const queryClient = useQueryClient()
   const [offset, setOffset] = useState(0)
   const [draft, setDraft] = useState('')
@@ -100,8 +109,13 @@ export function NotesPanel({ caseId, mode }: { caseId: string; mode: 'firm' | 'a
                   <span>({ROLE_LABELS[note.author.role]})</span>
                   <span>· {new Date(note.created_at).toLocaleString()}</span>
                   {mode === 'admin' && (
-                    <Badge variant="outline" className="ml-auto">
+                    <Badge
+                      variant="outline"
+                      className="ml-auto"
+                      title="The firm that wrote this note. Only that firm (while assigned) and admins can read it."
+                    >
                       {note.owner_firm.name}
+                      {currentFirmId && note.owner_firm.id !== currentFirmId && ' · previous firm'}
                     </Badge>
                   )}
                 </div>

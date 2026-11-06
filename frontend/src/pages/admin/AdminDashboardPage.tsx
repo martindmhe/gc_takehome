@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery, type UseQueryResult } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
-import { Link, useSearchParams } from 'react-router'
+import { Link, useNavigate, useSearchParams } from 'react-router'
 
 import { CASE_STATUS_LABELS, CaseStatusBadge } from '@/components/CaseStatusBadge'
 import { LEAD_STATUS_LABELS, LeadStatusBadge } from '@/components/LeadStatusBadge'
@@ -24,7 +24,6 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
-  adminListFirms,
   adminSearchCases,
   adminSearchLeads,
   getMeta,
@@ -35,6 +34,7 @@ import {
 } from '@/lib/api'
 import { unassignedReason } from '@/lib/leads'
 import { useDebounced } from '@/lib/useDebounced'
+import { useFirms } from '@/lib/useFirms'
 import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 25
@@ -112,15 +112,6 @@ export function AdminDashboardPage() {
       <div role="tabpanel">{tab === 'leads' ? <LeadsTab /> : <CasesTab />}</div>
     </div>
   )
-}
-
-function useFirms() {
-  // 100 is the API's page-size cap; enough for a filter dropdown here.
-  return useQuery({
-    queryKey: ['admin', 'firms'],
-    queryFn: () => adminListFirms({ page_size: 100 }),
-    staleTime: 5 * 60_000,
-  })
 }
 
 function FirmFilter({ value, onChange }: { value: string; onChange: (v: string) => void }) {
@@ -221,6 +212,7 @@ function Results({
 }
 
 function LeadsTab() {
+  const navigate = useNavigate()
   const f = useUrlFilters()
   const filters = {
     q: f.get('q'),
@@ -331,11 +323,16 @@ function LeadsTab() {
             {leads.data?.items.map((lead) => {
               const reason = unassignedReason(lead)
               return (
-                <TableRow key={lead.id} className={reason ? 'bg-amber-50/60' : undefined}>
+                <TableRow
+                  key={lead.id}
+                  className={cn('cursor-pointer', reason && 'bg-amber-50/60')}
+                  onClick={() => navigate(`/admin/leads/${lead.id}`)}
+                >
                   <TableCell>{new Date(lead.created_at).toLocaleDateString()}</TableCell>
                   <TableCell>
                     <Link
                       to={`/admin/leads/${lead.id}`}
+                      onClick={(e) => e.stopPropagation()}
                       className="font-medium underline-offset-4 hover:underline"
                     >
                       {lead.contact_name}
@@ -399,6 +396,7 @@ function NeedsAssignment({ onShow }: { onShow: (status: LeadStatus) => void }) {
 }
 
 function CasesTab() {
+  const navigate = useNavigate()
   const f = useUrlFilters()
   const filters = {
     q: f.get('q'),
@@ -470,11 +468,16 @@ function CasesTab() {
           </TableHeader>
           <TableBody>
             {cases.data?.items.map((c) => (
-              <TableRow key={c.id}>
+              <TableRow
+                key={c.id}
+                className="cursor-pointer"
+                onClick={() => navigate(`/admin/cases/${c.id}`)}
+              >
                 <TableCell>{new Date(c.created_at).toLocaleDateString()}</TableCell>
                 <TableCell>
                   <Link
                     to={`/admin/cases/${c.id}`}
+                    onClick={(e) => e.stopPropagation()}
                     className="font-medium underline-offset-4 hover:underline"
                   >
                     {c.lead.contact_name}
