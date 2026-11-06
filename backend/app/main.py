@@ -7,7 +7,13 @@ from fastapi.responses import JSONResponse
 from app.api.router import api_router
 from app.db.init_db import init_db
 from app.db.session import engine
-from app.services.errors import ConflictError, ForbiddenError, NotFoundError
+from app.services.errors import (
+    ConflictError,
+    FileTooLargeError,
+    ForbiddenError,
+    InvalidFileError,
+    NotFoundError,
+)
 
 
 @asynccontextmanager
@@ -34,6 +40,14 @@ def create_app() -> FastAPI:
     @app.exception_handler(ConflictError)
     def _conflict(_: Request, exc: ConflictError) -> JSONResponse:
         return JSONResponse({"detail": str(exc)}, status_code=status.HTTP_409_CONFLICT)
+
+    @app.exception_handler(InvalidFileError)
+    def _invalid_file(_: Request, exc: InvalidFileError) -> JSONResponse:
+        return JSONResponse({"detail": str(exc)}, status_code=status.HTTP_415_UNSUPPORTED_MEDIA_TYPE)
+
+    @app.exception_handler(FileTooLargeError)
+    def _too_large(_: Request, exc: FileTooLargeError) -> JSONResponse:
+        return JSONResponse({"detail": str(exc)}, status_code=status.HTTP_413_CONTENT_TOO_LARGE)
 
     return app
 

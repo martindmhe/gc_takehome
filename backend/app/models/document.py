@@ -2,9 +2,10 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import BigInteger, ForeignKey, Index, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
+from app.models.user import User
 
 
 class Document(Base):
@@ -25,3 +26,5 @@ class Document(Base):
     content_type: Mapped[str] = mapped_column(String(100))
     size_bytes: Mapped[int] = mapped_column(BigInteger)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    uploaded_by: Mapped[User] = relationship(lazy="raise")

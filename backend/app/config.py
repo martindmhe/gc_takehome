@@ -17,6 +17,7 @@ class Settings(BaseSettings):
 
     database_url: str
     storage_dir: Path = BACKEND_DIR / "var" / "uploads"  # override with an absolute path
+    max_upload_bytes: int = 10 * 1024 * 1024
     sql_echo: bool = False
 
 

@@ -11,3 +11,11 @@ class ForbiddenError(Exception):
 
 class ConflictError(Exception):
     """The action doesn't fit the record's current state, e.g. accepting a declined lead (409)."""
+
+
+class InvalidFileError(Exception):
+    """The upload isn't an acceptable file, e.g. not a PDF (415)."""
+
+
+class FileTooLargeError(Exception):
+    """The upload exceeds the configured size limit (413)."""
