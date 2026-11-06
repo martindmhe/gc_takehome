@@ -8,6 +8,7 @@ from app.db.base import Base
 from app.models.normalize import normalize_region
 from app.models.enums import LeadStatus, lead_status_type
 from app.models.firm import Firm
+from app.models.user import User
 
 
 class Lead(Base):
@@ -36,6 +37,7 @@ class Lead(Base):
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
 
+    plaintiff: Mapped[User] = relationship(lazy="raise")
     # lazy="raise": load it explicitly (joinedload) so list queries can't go N+1.
     assigned_firm: Mapped[Firm | None] = relationship(lazy="raise")
     # At most one (cases.lead_id is unique).
