@@ -7,3 +7,7 @@ class NotFoundError(Exception):
 
 class ForbiddenError(Exception):
     """The caller may not perform this action (403)."""
+
+
+class ConflictError(Exception):
+    """The action doesn't fit the record's current state, e.g. accepting a declined lead (409)."""

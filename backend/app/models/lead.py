@@ -38,6 +38,8 @@ class Lead(Base):
 
     # lazy="raise": load it explicitly (joinedload) so list queries can't go N+1.
     assigned_firm: Mapped[Firm | None] = relationship(lazy="raise")
+    # At most one (cases.lead_id is unique).
+    case: Mapped["LegalCase | None"] = relationship(back_populates="lead", lazy="raise")
 
     @validates("region")
     def _normalize_region(self, _key: str, value: str) -> str:

@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 from app.api.router import api_router
 from app.db.init_db import init_db
 from app.db.session import engine
-from app.services.errors import ForbiddenError, NotFoundError
+from app.services.errors import ConflictError, ForbiddenError, NotFoundError
 
 
 @asynccontextmanager
@@ -30,6 +30,10 @@ def create_app() -> FastAPI:
     @app.exception_handler(ForbiddenError)
     def _forbidden(_: Request, exc: ForbiddenError) -> JSONResponse:
         return JSONResponse({"detail": str(exc)}, status_code=status.HTTP_403_FORBIDDEN)
+
+    @app.exception_handler(ConflictError)
+    def _conflict(_: Request, exc: ConflictError) -> JSONResponse:
+        return JSONResponse({"detail": str(exc)}, status_code=status.HTTP_409_CONFLICT)
 
     return app
 

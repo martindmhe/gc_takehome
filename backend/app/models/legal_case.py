@@ -2,10 +2,12 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, Index, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.enums import CaseStatus, case_status_type
+from app.models.firm import Firm
+from app.models.lead import Lead
 
 
 class LegalCase(Base):
@@ -21,3 +23,6 @@ class LegalCase(Base):
     status: Mapped[CaseStatus] = mapped_column(case_status_type, default=CaseStatus.OPEN)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(server_default=func.now(), onupdate=func.now())
+
+    lead: Mapped[Lead] = relationship(back_populates="case", lazy="raise")
+    assigned_firm: Mapped[Firm] = relationship(lazy="raise")

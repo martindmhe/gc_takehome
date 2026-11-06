@@ -1,11 +1,21 @@
 import re
 import uuid
 from datetime import datetime
-from typing import Annotated
+from enum import StrEnum
+from typing import Annotated, Self
 
-from pydantic import BaseModel, ConfigDict, StringConstraints, computed_field, field_validator
+from pydantic import (
+    AwareDatetime,
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    computed_field,
+    field_validator,
+    model_validator,
+)
 
-from app.models.enums import Category, LeadStatus
+from app.models.enums import CaseStatus, Category, LeadStatus
 from app.models.normalize import normalize_region, region_label
 from app.schemas.user import FirmSummary
 
@@ -37,8 +47,8 @@ class LeadCreate(BaseModel):
         return normalize_region(value)
 
 
-class LeadRead(BaseModel):
-    """A lead as its viewer sees it. Omits the plaintiff's account details."""
+class LeadInfo(BaseModel):
+    """What the plaintiff submitted. Omits the plaintiff's account details."""
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -48,10 +58,7 @@ class LeadRead(BaseModel):
     region: str
     category: Category
     description: str
-    status: LeadStatus
-    assigned_firm: FirmSummary | None
     created_at: datetime
-    updated_at: datetime
 
     @computed_field  # type: ignore[prop-decorator]
     @property
@@ -62,3 +69,68 @@ class LeadRead(BaseModel):
     @property
     def category_label(self) -> str:
         return self.category.label
+
+
+class CaseSummary(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    status: CaseStatus
+
+
+class LeadRead(LeadInfo):
+    """A lead with its current assignment and, once accepted, its case."""
+
+    status: LeadStatus
+    assigned_firm: FirmSummary | None
+    case: CaseSummary | None
+    updated_at: datetime
+
+
+class LeadDeclined(BaseModel):
+    """Result of a decline. The decliner loses access, so only the outcome is returned."""
+
+    id: uuid.UUID
+    status: LeadStatus
+
+
+class LeadSort(StrEnum):
+    NEWEST = "newest"
+    OLDEST = "oldest"
+
+
+class LeadListParams(BaseModel):
+    """Query parameters for GET /api/leads.
+
+    Unknown parameters (e.g. `firm_id`) are rejected: scope always comes from
+    the signed-in user, never from the request.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    status: LeadStatus | None = None
+    category: Category | None = None
+    region: Annotated[str, StringConstraints(max_length=50)] | None = None
+    # Case-insensitive match on contact name, contact email, or description.
+    q: Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)] | None = None
+    created_from: AwareDatetime | None = None  # inclusive
+    created_to: AwareDatetime | None = None  # exclusive
+    sort: LeadSort = LeadSort.NEWEST
+    limit: int = Field(25, ge=1, le=100)
+    offset: int = Field(0, ge=0)
+
+    @field_validator("region")
+    @classmethod
+    def _normalize_region(cls, value: str | None) -> str | None:
+        return normalize_region(value) or None if value is not None else None
+
+    @field_validator("q")
+    @classmethod
+    def _blank_to_none(cls, value: str | None) -> str | None:
+        return value or None
+
+    @model_validator(mode="after")
+    def _date_range(self) -> Self:
+        if self.created_from and self.created_to and self.created_from >= self.created_to:
+            raise ValueError("created_from must be before created_to")
+        return self
