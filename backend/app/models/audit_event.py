@@ -3,10 +3,11 @@ from datetime import datetime
 from typing import Any
 
 from sqlalchemy import CheckConstraint, ForeignKey, Index, String, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
 from app.models.enums import UserRole, user_role_type
+from app.models.user import User
 
 
 class AuditEvent(Base):
@@ -33,4 +34,9 @@ class AuditEvent(Base):
     action: Mapped[str] = mapped_column(String(100))
     old_values: Mapped[dict[str, Any] | None]
     new_values: Mapped[dict[str, Any] | None]
-    created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+    # clock_timestamp(), not now(): now() is fixed for the whole transaction, so
+    # several events written together (e.g. lead.accepted + case.created) would tie
+    # and their order in the history would be arbitrary.
+    created_at: Mapped[datetime] = mapped_column(server_default=func.clock_timestamp())
+
+    actor: Mapped[User | None] = relationship(lazy="raise")

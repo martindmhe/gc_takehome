@@ -1,14 +1,16 @@
-"""Query parameters for the admin search endpoints (GET /api/admin/...)."""
+"""Request and response models for the admin endpoints (/api/admin/...)."""
 
 import uuid
+from datetime import datetime
 from enum import StrEnum
-from typing import Annotated
+from typing import Annotated, Any
 
-from pydantic import ConfigDict, StringConstraints, field_validator
+from pydantic import BaseModel, ConfigDict, StringConstraints, field_validator
 
 from app.models.enums import CaseStatus, Category, LeadStatus
 from app.models.normalize import normalize_region
 from app.schemas.common import PageParams
+from app.schemas.user import UserSummary
 
 SearchText = Annotated[str, StringConstraints(strip_whitespace=True, max_length=200)]
 
@@ -50,3 +52,29 @@ class AdminCaseSearchParams(_SearchParams):
 
 class AdminFirmListParams(PageParams):
     model_config = ConfigDict(extra="forbid")
+
+
+class FirmAssignment(BaseModel):
+    """Body for assign/reassign. Only the target firm; everything else comes from the server."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    firm_id: uuid.UUID
+
+
+class HistoryParams(PageParams):
+    model_config = ConfigDict(extra="forbid")
+
+
+class AuditEventRead(BaseModel):
+    """One history entry. `actor` is null for SYSTEM actions (e.g. automatic routing)."""
+
+    id: uuid.UUID
+    entity_type: str
+    entity_id: uuid.UUID
+    action: str
+    actor: UserSummary | None
+    description: str
+    old_values: dict[str, Any] | None
+    new_values: dict[str, Any] | None
+    created_at: datetime

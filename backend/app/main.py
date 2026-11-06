@@ -12,6 +12,7 @@ from app.services.errors import (
     FileTooLargeError,
     ForbiddenError,
     InvalidFileError,
+    InvalidRequestError,
     NotFoundError,
 )
 
@@ -40,6 +41,10 @@ def create_app() -> FastAPI:
     @app.exception_handler(ConflictError)
     def _conflict(_: Request, exc: ConflictError) -> JSONResponse:
         return JSONResponse({"detail": str(exc)}, status_code=status.HTTP_409_CONFLICT)
+
+    @app.exception_handler(InvalidRequestError)
+    def _invalid_request(_: Request, exc: InvalidRequestError) -> JSONResponse:
+        return JSONResponse({"detail": str(exc)}, status_code=status.HTTP_422_UNPROCESSABLE_CONTENT)
 
     @app.exception_handler(InvalidFileError)
     def _invalid_file(_: Request, exc: InvalidFileError) -> JSONResponse:

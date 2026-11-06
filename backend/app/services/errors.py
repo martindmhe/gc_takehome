@@ -13,6 +13,10 @@ class ConflictError(Exception):
     """The action doesn't fit the record's current state, e.g. accepting a declined lead (409)."""
 
 
+class InvalidRequestError(Exception):
+    """The request refers to something invalid, e.g. an unknown target firm (422)."""
+
+
 class InvalidFileError(Exception):
     """The upload isn't an acceptable file, e.g. not a PDF (415)."""
 
