@@ -23,6 +23,24 @@ class Lead(Base):
         Index("ix_leads_plaintiff_created", "plaintiff_id", "created_at"),
         Index("ix_leads_firm_status_created", "assigned_firm_id", "status", "created_at"),
         Index("ix_leads_status_created", "status", "created_at"),
+        # Admin search: newest-first over everything, and the category/region filters.
+        Index("ix_leads_created_id", "created_at", "id"),
+        Index("ix_leads_category_created", "category", "created_at"),
+        Index("ix_leads_region_created", "region", "created_at"),
+        # Trigram indexes so `ILIKE '%term%'` on contact name/email doesn't scan every row
+        # (needs the pg_trgm extension; see app/db/init_db.py).
+        Index(
+            "ix_leads_contact_name_trgm",
+            "contact_name",
+            postgresql_using="gin",
+            postgresql_ops={"contact_name": "gin_trgm_ops"},
+        ),
+        Index(
+            "ix_leads_contact_email_trgm",
+            "contact_email",
+            postgresql_using="gin",
+            postgresql_ops={"contact_email": "gin_trgm_ops"},
+        ),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)

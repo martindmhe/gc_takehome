@@ -14,6 +14,8 @@ class LegalCase(Base):
     __tablename__ = "cases"
     __table_args__ = (
         Index("ix_cases_firm_status_created", "assigned_firm_id", "status", "created_at"),
+        Index("ix_cases_status_created", "status", "created_at"),
+        Index("ix_cases_created_id", "created_at", "id"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
