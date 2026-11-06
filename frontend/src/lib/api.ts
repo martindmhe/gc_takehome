@@ -82,11 +82,13 @@ export type Lead = LeadInfo & {
   case: CaseSummary | null
   updated_at: string
 }
+export type PlaintiffSummary = { id: string; display_name: string; email: string }
 export type Case = {
   id: string
   status: CaseStatus
   assigned_firm: FirmSummary
   lead: LeadInfo
+  plaintiff: PlaintiffSummary
   created_at: string
   updated_at: string
 }
@@ -127,13 +129,17 @@ export type LeadListParams = {
   offset?: number
 }
 
-export function listLeads(params: LeadListParams): Promise<Page<Lead>> {
+/** `?a=1&b=2` from the set values, or '' if none. */
+function queryString(params: Record<string, string | number | undefined>): string {
   const query = new URLSearchParams()
   for (const [key, value] of Object.entries(params)) {
     if (value !== undefined && value !== '' && value !== 0) query.set(key, String(value))
   }
-  const suffix = query.size ? `?${query}` : ''
-  return apiFetch<Page<Lead>>(`/api/leads${suffix}`)
+  return query.size ? `?${query}` : ''
+}
+
+export function listLeads(params: LeadListParams): Promise<Page<Lead>> {
+  return apiFetch<Page<Lead>>(`/api/leads${queryString(params)}`)
 }
 
 export function getLead(id: string): Promise<Lead> {
@@ -154,4 +160,18 @@ export function declineLead(id: string): Promise<{ id: string; status: LeadStatu
 
 export function getCase(id: string): Promise<Case> {
   return apiFetch<Case>(`/api/cases/${encodeURIComponent(id)}`)
+}
+
+export type CaseListParams = { status?: CaseStatus; limit?: number; offset?: number }
+
+/** Newest first. */
+export function listCases(params: CaseListParams): Promise<Page<Case>> {
+  return apiFetch<Page<Case>>(`/api/cases${queryString(params)}`)
+}
+
+export function updateCaseStatus(id: string, status: CaseStatus): Promise<Case> {
+  return apiFetch<Case>(`/api/cases/${encodeURIComponent(id)}/status`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  })
 }

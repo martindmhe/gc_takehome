@@ -1,7 +1,7 @@
 import { Badge } from '@/components/ui/badge'
 import type { CaseStatus } from '@/lib/api'
 
-const LABELS: Record<CaseStatus, string> = {
+export const CASE_STATUS_LABELS: Record<CaseStatus, string> = {
   OPEN: 'Open',
   IN_PROGRESS: 'In progress',
   WAITING_ON_PLAINTIFF: 'Waiting on plaintiff',
@@ -9,5 +9,5 @@ const LABELS: Record<CaseStatus, string> = {
 }
 
 export function CaseStatusBadge({ status }: { status: CaseStatus }) {
-  return <Badge variant={status === 'CLOSED' ? 'secondary' : 'outline'}>{LABELS[status]}</Badge>
+  return <Badge variant={status === 'CLOSED' ? 'secondary' : 'outline'}>{CASE_STATUS_LABELS[status]}</Badge>
 }

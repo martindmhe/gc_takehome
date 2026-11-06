@@ -6,6 +6,7 @@ import { HealthPage } from '@/pages/HealthPage'
 import { SignInPage } from '@/pages/SignInPage'
 import { WorkspacePlaceholderPage } from '@/pages/WorkspacePlaceholderPage'
 import { LeadDetailPage } from '@/pages/plaintiff/LeadDetailPage'
+import { PlaintiffCasePage } from '@/pages/plaintiff/PlaintiffCasePage'
 import { NewLeadPage } from '@/pages/plaintiff/NewLeadPage'
 import { PlaintiffDashboardPage } from '@/pages/plaintiff/PlaintiffDashboardPage'
 import { FirmCasePage } from '@/pages/firm/FirmCasePage'
@@ -31,6 +32,7 @@ export function AppRoutes() {
         <Route index element={<PlaintiffDashboardPage />} />
         <Route path="leads/new" element={<NewLeadPage />} />
         <Route path="leads/:leadId" element={<LeadDetailPage />} />
+        <Route path="cases/:caseId" element={<PlaintiffCasePage />} />
       </Route>
 
       <Route path="/firm" element={<AppLayout roles={['ATTORNEY', 'PARALEGAL']} />}>

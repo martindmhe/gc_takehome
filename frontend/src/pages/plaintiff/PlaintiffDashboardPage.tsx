@@ -1,6 +1,7 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router'
 
+import { CaseList } from '@/components/CaseList'
 import { LEAD_STATUS_LABELS, LeadStatusBadge } from '@/components/LeadStatusBadge'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
@@ -46,7 +47,9 @@ export function PlaintiffDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <CaseList title="My cases" basePath="/plaintiff" />
+
+      <div className="flex flex-wrap items-center justify-between gap-4 pt-4">
         <h1 className="text-2xl font-semibold">My leads</h1>
         <Button asChild>
           <Link to="/plaintiff/leads/new">New lead</Link>

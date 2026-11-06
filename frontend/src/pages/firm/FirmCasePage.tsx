@@ -1,47 +1,65 @@
-import { useQuery } from '@tanstack/react-query'
-import { Link, useParams } from 'react-router'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useParams } from 'react-router'
 
-import { CaseStatusBadge } from '@/components/CaseStatusBadge'
-import { DetailItem, LeadInfoFields } from '@/components/LeadInfoFields'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ApiError, getCase } from '@/lib/api'
+import { CaseDetails } from '@/components/CaseDetails'
+import { CASE_STATUS_LABELS } from '@/components/CaseStatusBadge'
+import { Label } from '@/components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { updateCaseStatus, type Case, type CaseStatus } from '@/lib/api'
 
-/** Read-only case view. Case progress, notes and documents come in later steps. */
-export function FirmCasePage() {
-  const { caseId = '' } = useParams()
-  const legalCase = useQuery({ queryKey: ['case', caseId], queryFn: () => getCase(caseId) })
+/** Staff-only: change the case's progress status. */
+function CaseStatusControl({ legalCase }: { legalCase: Case }) {
+  const queryClient = useQueryClient()
+  const mutation = useMutation({
+    mutationFn: (status: CaseStatus) => updateCaseStatus(legalCase.id, status),
+    onSuccess: (updated) => {
+      queryClient.setQueryData(['case', updated.id], updated)
+      void queryClient.invalidateQueries({ queryKey: ['cases'] })
+    },
+  })
 
   return (
-    <div className="space-y-4">
-      <Link to="/firm" className="text-muted-foreground text-sm hover:underline">
-        ← Inbox
-      </Link>
-
-      {legalCase.isPending && <p className="text-muted-foreground">Loading…</p>}
-      {legalCase.isError && (
-        <p role="alert" className="text-destructive">
-          {legalCase.error instanceof ApiError && legalCase.error.status === 404
-            ? 'Case not found.'
-            : legalCase.error.message}
+    <div className="bg-muted space-y-2 rounded-md p-3">
+      <div className="flex flex-wrap items-center gap-2">
+        <Label htmlFor="case-status">Progress</Label>
+        <Select
+          value={legalCase.status}
+          disabled={mutation.isPending}
+          onValueChange={(value) => mutation.mutate(value as CaseStatus)}
+        >
+          <SelectTrigger id="case-status" className="w-56 bg-white">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(CASE_STATUS_LABELS).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        {mutation.isPending && <span className="text-muted-foreground text-sm">Saving…</span>}
+      </div>
+      {mutation.isError && (
+        <p role="alert" className="text-destructive text-sm">
+          {mutation.error.message}
         </p>
       )}
-
-      {legalCase.isSuccess && (
-        <Card>
-          <CardHeader className="flex flex-row flex-wrap items-start justify-between gap-2">
-            <CardTitle className="text-xl">Case: {legalCase.data.lead.contact_name}</CardTitle>
-            <CaseStatusBadge status={legalCase.data.status} />
-          </CardHeader>
-          <CardContent>
-            <LeadInfoFields lead={legalCase.data.lead}>
-              <DetailItem label="Firm">{legalCase.data.assigned_firm.name}</DetailItem>
-              <DetailItem label="Case opened">
-                {new Date(legalCase.data.created_at).toLocaleString()}
-              </DetailItem>
-            </LeadInfoFields>
-          </CardContent>
-        </Card>
-      )}
     </div>
+  )
+}
+
+export function FirmCasePage() {
+  const { caseId = '' } = useParams()
+  return (
+    <CaseDetails caseId={caseId} backTo="/firm" backLabel="Inbox">
+      {(legalCase) => <CaseStatusControl legalCase={legalCase} />}
+    </CaseDetails>
   )
 }

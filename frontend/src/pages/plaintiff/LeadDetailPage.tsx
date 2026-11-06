@@ -55,8 +55,13 @@ export function LeadDetailPage() {
                 {lead.data.assigned_firm?.name ?? 'Not assigned yet'}
               </DetailItem>
               {lead.data.case && (
-                <DetailItem label="Case status">
-                  <CaseStatusBadge status={lead.data.case.status} />
+                <DetailItem label="Case">
+                  <Link
+                    to={`/plaintiff/cases/${lead.data.case.id}`}
+                    className="inline-flex items-center gap-2 underline-offset-4 hover:underline"
+                  >
+                    <CaseStatusBadge status={lead.data.case.status} /> View case progress
+                  </Link>
                 </DetailItem>
               )}
             </LeadInfoFields>

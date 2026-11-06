@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 
+import { CaseList } from '@/components/CaseList'
 import { LEAD_STATUS_LABELS, LeadStatusBadge } from '@/components/LeadStatusBadge'
 import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
@@ -288,6 +289,10 @@ export function FirmInboxPage() {
         total={leads.data?.total ?? 0}
         onChange={(next) => setFilter('offset', next ? String(next) : '')}
       />
+
+      <div className="pt-4">
+        <CaseList title="Assigned cases" basePath="/firm" />
+      </div>
     </div>
   )
 }
