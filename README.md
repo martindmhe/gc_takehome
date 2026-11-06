@@ -10,7 +10,7 @@
 
 ```bash
 # 1. Environment (one .env at the repo root, used by Docker, the backend and Vite)
-cp .env.example .env
+cp .env.placeholder .env
 
 # 2. Database
 docker compose up -d
@@ -30,6 +30,9 @@ npm run dev                   # http://localhost:5173
 ```
 
 Open http://localhost:5173 and pick a demo account to sign in.
+
+`.env.placeholder` is committed with working values on purpose: there are no third-party
+services or API keys yet, and the only credential is the local Docker database password.
 
 ## Tests
 

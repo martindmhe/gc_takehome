@@ -3,7 +3,7 @@ docs/*
 # Environment
 .env
 .env.*
-!.env.example
+!.env.placeholder
 
  Python
 __pycache__/
@@ -27,3 +27,5 @@ dist/
 .idea/
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
+
