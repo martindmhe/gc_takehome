@@ -1,5 +1,3 @@
-# Lead Management
-
 ## Requirements
 
 - Docker
