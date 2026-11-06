@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 
 import { CaseDetails } from '@/components/CaseDetails'
 import { CASE_STATUS_LABELS } from '@/components/CaseStatusBadge'
+import { NotesPanel } from '@/components/NotesPanel'
 import { Label } from '@/components/ui/label'
 import {
   Select,
@@ -58,7 +59,12 @@ function CaseStatusControl({ legalCase }: { legalCase: Case }) {
 export function FirmCasePage() {
   const { caseId = '' } = useParams()
   return (
-    <CaseDetails caseId={caseId} backTo="/firm" backLabel="Inbox">
+    <CaseDetails
+      caseId={caseId}
+      backTo="/firm"
+      backLabel="Inbox"
+      after={(legalCase) => <NotesPanel caseId={legalCase.id} mode="firm" />}
+    >
       {(legalCase) => <CaseStatusControl legalCase={legalCase} />}
     </CaseDetails>
   )

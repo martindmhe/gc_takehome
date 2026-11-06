@@ -42,9 +42,10 @@ async function openPdf(documentId: string): Promise<void> {
 
 /**
  * A lead's shared documents with an upload control. Shown on lead and case pages
- * (a case's documents are its lead's). The server decides who may see or add them.
+ * (a case's documents are its lead's). The server decides who may see or add them;
+ * `readOnly` just hides the upload button for viewers who can't upload (admins).
  */
-export function DocumentsPanel({ leadId }: { leadId: string }) {
+export function DocumentsPanel({ leadId, readOnly = false }: { leadId: string; readOnly?: boolean }) {
   const queryClient = useQueryClient()
   const fileInput = useRef<HTMLInputElement>(null)
   const [offset, setOffset] = useState(0)
@@ -93,13 +94,15 @@ export function DocumentsPanel({ leadId }: { leadId: string }) {
           className="hidden"
           onChange={(e) => onFileChosen(e.target.files?.[0])}
         />
-        <Button
-          variant="outline"
-          disabled={upload.isPending}
-          onClick={() => fileInput.current?.click()}
-        >
-          {upload.isPending ? 'Uploading…' : 'Upload PDF'}
-        </Button>
+        {!readOnly && (
+          <Button
+            variant="outline"
+            disabled={upload.isPending}
+            onClick={() => fileInput.current?.click()}
+          >
+            {upload.isPending ? 'Uploading…' : 'Upload PDF'}
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="space-y-3">
         <p className="text-muted-foreground text-sm">

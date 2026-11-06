@@ -1,5 +1,4 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 
 import { CaseList } from '@/components/CaseList'
@@ -25,6 +24,7 @@ import {
 } from '@/components/ui/table'
 import { getMeta, listLeads, type LeadSort, type LeadStatus } from '@/lib/api'
 import { useSession } from '@/lib/session'
+import { useDebounced } from '@/lib/useDebounced'
 
 const PAGE_SIZE = 25
 const ANY = 'any'
@@ -35,23 +35,6 @@ function dayStart(date: string, days = 0): string {
   const d = new Date(`${date}T00:00:00`)
   d.setDate(d.getDate() + days)
   return d.toISOString()
-}
-
-/** Text input that only commits its value after typing pauses. */
-function useDebounced(value: string, onCommit: (v: string) => void, delay = 300) {
-  const [draft, setDraft] = useState(value)
-  const [committed, setCommitted] = useState(value)
-  // The URL value changed elsewhere (e.g. "Clear filters"): show it.
-  if (value !== committed) {
-    setCommitted(value)
-    setDraft(value)
-  }
-  useEffect(() => {
-    if (draft === value) return
-    const timer = setTimeout(() => onCommit(draft), delay)
-    return () => clearTimeout(timer)
-  }, [draft, value, onCommit, delay])
-  return [draft, setDraft] as const
 }
 
 export function FirmInboxPage() {

@@ -10,18 +10,23 @@ import { ApiError, getCase, type Case } from '@/lib/api'
 
 /**
  * Shared case page layout: back link, loading/error states, the case card, and documents.
- * `children` renders role-specific content (e.g. staff controls) above the details.
+ * `children` renders role-specific content (e.g. staff controls) above the details;
+ * `after` renders extra sections (e.g. private notes) below the documents.
  */
 export function CaseDetails({
   caseId,
   backTo,
   backLabel,
   children,
+  after,
+  readOnlyDocuments = false,
 }: {
   caseId: string
   backTo: string
   backLabel: string
   children?: (legalCase: Case) => ReactNode
+  after?: (legalCase: Case) => ReactNode
+  readOnlyDocuments?: boolean
 }) {
   const legalCase = useQuery({
     queryKey: ['case', caseId],
@@ -68,7 +73,8 @@ export function CaseDetails({
           </CardContent>
         </Card>
       )}
-      {legalCase.isSuccess && <DocumentsPanel leadId={legalCase.data.lead.id} />}
+      {legalCase.isSuccess && <DocumentsPanel leadId={legalCase.data.lead.id} readOnly={readOnlyDocuments} />}
+      {legalCase.isSuccess && after?.(legalCase.data)}
     </div>
   )
 }

@@ -4,7 +4,9 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router'
 import { AppLayout } from '@/components/AppLayout'
 import { HealthPage } from '@/pages/HealthPage'
 import { SignInPage } from '@/pages/SignInPage'
-import { WorkspacePlaceholderPage } from '@/pages/WorkspacePlaceholderPage'
+import { AdminCasePage } from '@/pages/admin/AdminCasePage'
+import { AdminDashboardPage } from '@/pages/admin/AdminDashboardPage'
+import { AdminLeadPage } from '@/pages/admin/AdminLeadPage'
 import { LeadDetailPage } from '@/pages/plaintiff/LeadDetailPage'
 import { PlaintiffCasePage } from '@/pages/plaintiff/PlaintiffCasePage'
 import { NewLeadPage } from '@/pages/plaintiff/NewLeadPage'
@@ -41,8 +43,10 @@ export function AppRoutes() {
         <Route path="cases/:caseId" element={<FirmCasePage />} />
       </Route>
 
-      <Route path="/workspace" element={<AppLayout roles={['ADMIN']} />}>
-        <Route index element={<WorkspacePlaceholderPage />} />
+      <Route path="/admin" element={<AppLayout roles={['ADMIN']} />}>
+        <Route index element={<AdminDashboardPage />} />
+        <Route path="leads/:leadId" element={<AdminLeadPage />} />
+        <Route path="cases/:caseId" element={<AdminCasePage />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

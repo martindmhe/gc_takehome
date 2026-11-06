@@ -109,11 +109,24 @@ export type DocumentInfo = {
   uploaded_by: { id: string; display_name: string; role: Role }
   created_at: string
 }
+export type UserSummary = { id: string; display_name: string; role: Role }
+/** A firm-private case note. Only firm staff (own firm's notes) and admins can read them. */
+export type CaseNote = {
+  id: string
+  case_id: string
+  content: string
+  author: UserSummary
+  owner_firm: FirmSummary
+  created_at: string
+}
 export type LeadCreate = Pick<
   Lead,
   'contact_name' | 'contact_email' | 'region' | 'category' | 'description'
 >
 export type Page<T> = { items: T[]; total: number; limit: number; offset: number }
+/** The admin endpoints page by number instead of offset. */
+export type NumberedPage<T> = { items: T[]; total: number; page: number; page_size: number }
+export type Firm = FirmSummary & { created_at: string }
 
 // --- endpoints ---
 
@@ -220,4 +233,53 @@ export async function downloadDocument(id: string): Promise<Blob> {
     headers: { Accept: 'application/pdf' },
   })
   return response.blob()
+}
+
+export type NoteListParams = { limit?: number; offset?: number }
+
+/** Newest first. Staff get their own firm's notes; admins get every firm's. */
+export function listNotes(caseId: string, params: NoteListParams): Promise<Page<CaseNote>> {
+  return apiFetch<Page<CaseNote>>(
+    `/api/cases/${encodeURIComponent(caseId)}/notes${queryString(params)}`,
+  )
+}
+
+/** Author and owner firm come from the signed-in user on the server. */
+export function createNote(caseId: string, content: string): Promise<CaseNote> {
+  return apiFetch<CaseNote>(`/api/cases/${encodeURIComponent(caseId)}/notes`, {
+    method: 'POST',
+    body: JSON.stringify({ content }),
+  })
+}
+
+// --- admin (read-only search across every firm; ADMIN only) ---
+
+export type SortOrder = 'newest' | 'oldest'
+type AdminSearchParams = {
+  /** Plaintiff contact name or email. */
+  q?: string
+  /** Currently assigned firm. */
+  firm_id?: string
+  sort?: SortOrder
+  page?: number
+  /** At most 100. */
+  page_size?: number
+}
+export type AdminLeadSearchParams = AdminSearchParams & {
+  status?: LeadStatus
+  category?: string
+  region?: string
+}
+export type AdminCaseSearchParams = AdminSearchParams & { status?: CaseStatus }
+
+export function adminSearchLeads(params: AdminLeadSearchParams): Promise<NumberedPage<Lead>> {
+  return apiFetch<NumberedPage<Lead>>(`/api/admin/leads${queryString(params)}`)
+}
+
+export function adminSearchCases(params: AdminCaseSearchParams): Promise<NumberedPage<Case>> {
+  return apiFetch<NumberedPage<Case>>(`/api/admin/cases${queryString(params)}`)
+}
+
+export function adminListFirms(params: { page?: number; page_size?: number }): Promise<NumberedPage<Firm>> {
+  return apiFetch<NumberedPage<Firm>>(`/api/admin/firms${queryString(params)}`)
 }
