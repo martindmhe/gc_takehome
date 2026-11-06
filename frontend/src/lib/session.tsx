@@ -68,5 +68,7 @@ export const ROLE_LABELS: Record<DemoUser['role'], string> = {
 
 export function homePathFor(user: DemoUser | null): string {
   if (!user) return '/sign-in'
-  return user.role === 'PLAINTIFF' ? '/plaintiff' : '/workspace'
+  if (user.role === 'PLAINTIFF') return '/plaintiff'
+  if (user.role === 'ATTORNEY' || user.role === 'PARALEGAL') return '/firm'
+  return '/workspace'
 }

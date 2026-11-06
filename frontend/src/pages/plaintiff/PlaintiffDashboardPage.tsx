@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { Link, useSearchParams } from 'react-router'
 
 import { LEAD_STATUS_LABELS, LeadStatusBadge } from '@/components/LeadStatusBadge'
+import { Pagination } from '@/components/Pagination'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import {
@@ -109,31 +110,12 @@ export function PlaintiffDashboardPage() {
         </ul>
       )}
 
-      {total > PAGE_SIZE && (
-        <div className="flex items-center justify-between text-sm">
-          <span className="text-muted-foreground">
-            {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of {total}
-          </span>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={offset === 0}
-              onClick={() => update({ offset: Math.max(0, offset - PAGE_SIZE) })}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={offset + PAGE_SIZE >= total}
-              onClick={() => update({ offset: offset + PAGE_SIZE })}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <Pagination
+        offset={offset}
+        pageSize={PAGE_SIZE}
+        total={total}
+        onChange={(next) => update({ offset: next })}
+      />
     </div>
   )
 }

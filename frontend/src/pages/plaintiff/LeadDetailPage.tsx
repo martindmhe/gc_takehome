@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 
+import { CaseStatusBadge } from '@/components/CaseStatusBadge'
+import { DetailItem, LeadInfoFields } from '@/components/LeadInfoFields'
 import { LeadStatusBadge } from '@/components/LeadStatusBadge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiError, getLead, type Lead } from '@/lib/api'
@@ -48,29 +50,16 @@ export function LeadDetailPage() {
           <CardContent className="space-y-6">
             <p className="bg-muted rounded-md p-3 text-sm">{statusExplanation(lead.data)}</p>
 
-            <dl className="grid gap-4 text-sm sm:grid-cols-2">
-              <div>
-                <dt className="text-muted-foreground">Assigned firm</dt>
-                <dd>{lead.data.assigned_firm?.name ?? 'Not assigned yet'}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Submitted</dt>
-                <dd>{new Date(lead.data.created_at).toLocaleString()}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Contact name</dt>
-                <dd>{lead.data.contact_name}</dd>
-              </div>
-              <div>
-                <dt className="text-muted-foreground">Contact email</dt>
-                <dd>{lead.data.contact_email}</dd>
-              </div>
-            </dl>
-
-            <div className="text-sm">
-              <h2 className="text-muted-foreground mb-1">Description</h2>
-              <p className="whitespace-pre-wrap">{lead.data.description}</p>
-            </div>
+            <LeadInfoFields lead={lead.data}>
+              <DetailItem label="Assigned firm">
+                {lead.data.assigned_firm?.name ?? 'Not assigned yet'}
+              </DetailItem>
+              {lead.data.case && (
+                <DetailItem label="Case status">
+                  <CaseStatusBadge status={lead.data.case.status} />
+                </DetailItem>
+              )}
+            </LeadInfoFields>
           </CardContent>
         </Card>
       )}
