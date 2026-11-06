@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link, useNavigate, useParams } from 'react-router'
 
 import { CaseStatusBadge } from '@/components/CaseStatusBadge'
+import { DocumentsPanel } from '@/components/DocumentsPanel'
 import { DetailItem, LeadInfoFields } from '@/components/LeadInfoFields'
 import { LeadStatusBadge } from '@/components/LeadStatusBadge'
 import {
@@ -158,6 +159,8 @@ export function FirmLeadDetailPage() {
           </CardContent>
         </Card>
       )}
+
+      {lead.isSuccess && <DocumentsPanel leadId={lead.data.id} />}
     </div>
   )
 }

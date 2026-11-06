@@ -3,12 +3,13 @@ import type { ReactNode } from 'react'
 import { Link } from 'react-router'
 
 import { CaseStatusBadge } from '@/components/CaseStatusBadge'
+import { DocumentsPanel } from '@/components/DocumentsPanel'
 import { DetailItem, LeadInfoFields } from '@/components/LeadInfoFields'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ApiError, getCase, type Case } from '@/lib/api'
 
 /**
- * Shared case page layout: back link, loading/error states, and the case card.
+ * Shared case page layout: back link, loading/error states, the case card, and documents.
  * `children` renders role-specific content (e.g. staff controls) above the details.
  */
 export function CaseDetails({
@@ -67,6 +68,7 @@ export function CaseDetails({
           </CardContent>
         </Card>
       )}
+      {legalCase.isSuccess && <DocumentsPanel leadId={legalCase.data.lead.id} />}
     </div>
   )
 }

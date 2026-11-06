@@ -30,12 +30,20 @@ async function errorMessage(response: Response): Promise<string> {
  * The mock-signed-in user's id is attached as `X-Demo-User-Id`.
  */
 export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
+  const response = await authorizedFetch(path, init)
+  return (await response.json()) as T
+}
+
+/** `fetch` with the demo-user header, throwing `ApiError` on a non-2xx response. */
+async function authorizedFetch(path: string, init?: RequestInit): Promise<Response> {
   const user = readStoredUser()
+  // FormData bodies set their own multipart Content-Type (with the boundary).
+  const isJson = init?.body !== undefined && !(init.body instanceof FormData)
   const response = await fetch(path, {
     ...init,
     headers: {
       Accept: 'application/json',
-      ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(isJson ? { 'Content-Type': 'application/json' } : {}),
       ...(user ? { 'X-Demo-User-Id': user.id } : {}),
       ...init?.headers,
     },
@@ -43,7 +51,7 @@ export async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> 
   if (!response.ok) {
     throw new ApiError(response.status, await errorMessage(response))
   }
-  return (await response.json()) as T
+  return response
 }
 
 // --- types (mirror backend/app/schemas) ---
@@ -91,6 +99,15 @@ export type Case = {
   plaintiff: PlaintiffSummary
   created_at: string
   updated_at: string
+}
+export type DocumentInfo = {
+  id: string
+  lead_id: string
+  original_filename: string
+  content_type: string
+  size_bytes: number
+  uploaded_by: { id: string; display_name: string; role: Role }
+  created_at: string
 }
 export type LeadCreate = Pick<
   Lead,
@@ -174,4 +191,33 @@ export function updateCaseStatus(id: string, status: CaseStatus): Promise<Case> 
     method: 'PATCH',
     body: JSON.stringify({ status }),
   })
+}
+
+export type DocumentListParams = { limit?: number; offset?: number }
+
+/** A lead's documents, newest first. Case pages use the case's lead id. */
+export function listDocuments(leadId: string, params: DocumentListParams): Promise<Page<DocumentInfo>> {
+  return apiFetch<Page<DocumentInfo>>(
+    `/api/leads/${encodeURIComponent(leadId)}/documents${queryString(params)}`,
+  )
+}
+
+export function uploadDocument(leadId: string, file: File): Promise<DocumentInfo> {
+  const body = new FormData()
+  body.append('file', file)
+  return apiFetch<DocumentInfo>(`/api/leads/${encodeURIComponent(leadId)}/documents`, {
+    method: 'POST',
+    body,
+  })
+}
+
+/**
+ * The PDF's bytes. Downloads need the demo-user header, so a plain link can't be
+ * used; callers turn the blob into an object URL for the browser's PDF viewer.
+ */
+export async function downloadDocument(id: string): Promise<Blob> {
+  const response = await authorizedFetch(`/api/documents/${encodeURIComponent(id)}/download`, {
+    headers: { Accept: 'application/pdf' },
+  })
+  return response.blob()
 }
