@@ -3,15 +3,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from app.models.enums import UserRole
-
-
-class UploaderSummary(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
-
-    id: uuid.UUID
-    display_name: str
-    role: UserRole
+from app.schemas.user import UserSummary
 
 
 class DocumentRead(BaseModel):
@@ -23,7 +15,7 @@ class DocumentRead(BaseModel):
     original_filename: str
     content_type: str
     size_bytes: int
-    uploaded_by: UploaderSummary
+    uploaded_by: UserSummary
     created_at: datetime
 
 

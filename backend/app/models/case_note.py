@@ -2,9 +2,11 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import ForeignKey, Index, Text, func
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship, validates
 
 from app.db.base import Base
+from app.models.firm import Firm
+from app.models.user import User
 
 
 class CaseNote(Base):
@@ -23,3 +25,7 @@ class CaseNote(Base):
     author_user_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
     content: Mapped[str] = mapped_column(Text)
     created_at: Mapped[datetime] = mapped_column(server_default=func.now())
+
+    author: Mapped[User] = relationship(lazy="raise")
+    owner_firm: Mapped[Firm] = relationship(lazy="raise")
+
